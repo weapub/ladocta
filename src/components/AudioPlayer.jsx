@@ -136,20 +136,29 @@ const AudioPlayer = () => {
     if (!audio) return;
 
     // Estrategia 1: API RemotePlayback (Chrome, Edge, Android)
+    if (window.cast && window.cast.framework) {
+       // Si hay framework de cast cargado (opcional, si se implementara SDK completo)
+    }
+
     if (audio.remotePlayback) {
-      audio.remotePlayback.prompt()
-        .then(() => console.log('Seleccionando dispositivo de transmisión...'))
-        .catch(error => {
-          console.error('Error en RemotePlayback:', error);
-          if (error.name === 'NotFoundError') {
-             alert("No se encontraron dispositivos de transmisión disponibles cercanos.");
-          } else if (error.name !== 'NotAllowedError') {
-             // NotAllowedError ocurre si el usuario cancela, no es necesario alertar
-             alert("Ocurrió un error al intentar transmitir. Intenta desde el menú del navegador.");
-          }
-        });
+      // Verificar si hay dispositivos disponibles primero
+      audio.remotePlayback.watchAvailability((availability) => {
+         if (availability) {
+            audio.remotePlayback.prompt()
+            .catch(error => {
+                console.error('Error en RemotePlayback:', error);
+            });
+         } else {
+            console.log('No hay dispositivos de transmisión disponibles (watchAvailability).');
+            // Intentar prompt de todos modos por si acaso la API miente
+            audio.remotePlayback.prompt().catch(e => console.log(e));
+         }
+      }).catch(e => {
+        // Si watchAvailability falla, intentamos prompt directo
+        audio.remotePlayback.prompt().catch(err => console.error(err));
+      });
     } 
-    // Estrategia 2: API WebKit AirPlay (Safari iOS/Mac)
+    // Estrategia 2: API WebKit AirPlay (Safari iOS/Mac, algunos WebOS antiguos)
     else if (audio.webkitShowPlaybackTargetPicker) {
       audio.webkitShowPlaybackTargetPicker();
     }
@@ -190,7 +199,7 @@ const AudioPlayer = () => {
            </div>
         </div>
         <div className="cast-icon" onClick={handleCast}>
-           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" xmlns="http://www.w3.org/2000/svg">
              <path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"></path>
              <line x1="2" y1="20" x2="2.01" y2="20"></line>
            </svg>
