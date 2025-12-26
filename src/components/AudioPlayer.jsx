@@ -164,44 +164,52 @@ const AudioPlayer = () => {
     }
   };
 
-  const handleCast = () => {
+  const handleCast = async () => {
+    console.log("Botón Cast presionado");
     const audio = audioRef.current;
     
     // Estrategia 1: Google Cast SDK (PC Chrome, Android TV, WebOS con Cast)
     if (window.cast && window.cast.framework) {
-      const context = window.cast.framework.CastContext.getInstance();
-      context.requestSession().then(
-        (session) => {
-          console.log("Sesión de Cast iniciada", session);
-          const mediaInfo = new window.chrome.cast.media.MediaInfo(streamUrl, 'audio/mp3');
-          mediaInfo.metadata = new window.chrome.cast.media.MusicTrackMediaMetadata();
-          mediaInfo.metadata.artist = trackInfo.artist;
-          mediaInfo.metadata.title = trackInfo.title;
-          
-          // Construir URL absoluta para la imagen
-          const imageSrc = logoPlaceholder.startsWith('http') 
-            ? logoPlaceholder 
-            : window.location.origin + logoPlaceholder;
-            
-          mediaInfo.metadata.images = [new window.chrome.cast.Image(imageSrc)];
-
-          const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
-          session.loadMedia(request).then(
-            () => { 
-              console.log('Carga en Cast exitosa'); 
-              // Opcional: Pausar el reproductor local para no escuchar doble
-              if (audio) audio.pause();
-              setIsPlaying(true); 
-            },
-            (errorCode) => { console.error('Error code Cast load: ' + errorCode); }
-          );
-        },
-        (error) => {
-          if (error !== 'cancel') console.error("Error solicitando sesión Cast:", error);
+      try {
+        const context = window.cast.framework.CastContext.getInstance();
+        await context.requestSession();
+        
+        const session = context.getCurrentSession();
+        if (!session) {
+            console.warn("No se obtuvo sesión de Cast activa");
+            return;
         }
-      );
+
+        console.log("Sesión de Cast iniciada", session);
+        const mediaInfo = new window.chrome.cast.media.MediaInfo(streamUrl, 'audio/mp3');
+        mediaInfo.metadata = new window.chrome.cast.media.MusicTrackMediaMetadata();
+        mediaInfo.metadata.artist = trackInfo.artist;
+        mediaInfo.metadata.title = trackInfo.title;
+        
+        // Construir URL absoluta para la imagen
+        const imageSrc = logoPlaceholder.startsWith('http') 
+          ? logoPlaceholder 
+          : window.location.origin + logoPlaceholder;
+          
+        mediaInfo.metadata.images = [new window.chrome.cast.Image(imageSrc)];
+
+        const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
+        session.loadMedia(request).then(
+          () => { 
+            console.log('Carga en Cast exitosa'); 
+            // Opcional: Pausar el reproductor local para no escuchar doble
+            if (audio) audio.pause();
+            setIsPlaying(true); 
+          },
+          (errorCode) => { console.error('Error code Cast load: ' + errorCode); }
+        );
+      } catch (error) {
+        if (error !== 'cancel') {
+            console.error("Error solicitando sesión Cast:", error);
+            alert("Error al iniciar Cast: " + error);
+        }
+      }
       // Si Cast está disponible, retornamos para no intentar otros métodos simultáneamente
-      // a menos que Cast falle o no inicie sesión (el error handler lo cubre)
       return; 
     }
 
@@ -209,22 +217,14 @@ const AudioPlayer = () => {
 
     // Estrategia 2: API RemotePlayback (Chrome Mobile, Edge, etc.)
     if (audio.remotePlayback) {
-      // Verificar si hay dispositivos disponibles primero
-      audio.remotePlayback.watchAvailability((availability) => {
-         if (availability) {
-            audio.remotePlayback.prompt()
-            .catch(error => {
-                console.error('Error en RemotePlayback:', error);
-            });
-         } else {
-            console.log('No hay dispositivos de transmisión disponibles (watchAvailability).');
-            // Intentar prompt de todos modos
-            audio.remotePlayback.prompt().catch(e => console.log(e));
-         }
-      }).catch(e => {
-        // Si watchAvailability falla, intentamos prompt directo
-        audio.remotePlayback.prompt().catch(err => console.error(err));
-      });
+      console.log("Intentando RemotePlayback API...");
+      try {
+         // Intentar prompt directamente
+         await audio.remotePlayback.prompt();
+      } catch (error) {
+         console.error('Error en RemotePlayback:', error);
+         alert("No se pudo iniciar la transmisión: " + error.message);
+      }
     } 
     // Estrategia 3: API WebKit AirPlay (Safari iOS/Mac)
     else if (audio.webkitShowPlaybackTargetPicker) {
