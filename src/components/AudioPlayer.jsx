@@ -117,6 +117,12 @@ const AudioPlayer = () => {
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
+        // En WebOS/SmartTVs, a veces es necesario hacer load() explícito antes de play()
+        // si el stream se detuvo o no cargó correctamente al inicio.
+        if (audioRef.current.readyState === 0) {
+            audioRef.current.load();
+        }
+        
         const playPromise = audioRef.current.play();
         if (playPromise !== undefined) {
           playPromise
@@ -124,7 +130,15 @@ const AudioPlayer = () => {
             .catch(e => {
               console.error("Error al reproducir:", e);
               setIsPlaying(false);
-              alert("No se pudo reproducir el stream. Verifica la URL.");
+              // Si falla, intentamos recargar y reproducir
+              try {
+                  audioRef.current.load();
+                  audioRef.current.play()
+                    .then(() => setIsPlaying(true))
+                    .catch(err => alert("No se pudo iniciar la reproducción. Verifica tu conexión."));
+              } catch (retryErr) {
+                  alert("No se pudo reproducir el stream. Verifica la URL.");
+              }
             });
         }
       }
@@ -174,8 +188,11 @@ const AudioPlayer = () => {
       <audio 
         ref={audioRef} 
         src={streamUrl} 
-        preload="auto" 
+        type="audio/mpeg"
+        preload="none"
         crossOrigin="anonymous"
+        playsInline
+        webkit-playsinline="true"
         x-webkit-airplay="allow"
         onError={(e) => {
           console.error("Error en el tag de audio:", e);
