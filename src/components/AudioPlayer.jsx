@@ -261,7 +261,7 @@ const AudioPlayer = () => {
           <svg viewBox="0 0 24 24" fill={activeTab === 'news' ? "currentColor" : "none"} stroke="currentColor" strokeWidth={activeTab === 'news' ? "0" : "2"} height="20" width="20">
              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
           </svg>
-          <span>News</span>
+          <span>Noticias</span>
         </div>
         <div 
           className={`nav-item ${activeTab === 'video' ? 'active' : ''}`}
@@ -277,7 +277,7 @@ const AudioPlayer = () => {
           <svg viewBox="0 0 24 24" fill={activeTab === 'contact' ? "currentColor" : "none"} stroke="currentColor" strokeWidth={activeTab === 'contact' ? "0" : "2"} height="20" width="20">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
           </svg>
-          <span>Contact</span>
+          <span>Contacto</span>
         </div>
       </div>
 
