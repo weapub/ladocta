@@ -18,8 +18,8 @@ const AudioPlayer = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [trackInfo, setTrackInfo] = useState({
-    artist: 'LA DOCTA FM',
-    title: '99.3 MHz'
+    artist: 'EL COLORADO FORMOSA',
+    title: 'LA DOCTA FM 99.3'
   });
 
   useEffect(() => {
@@ -37,7 +37,7 @@ const AudioPlayer = () => {
             });
           } else {
             setTrackInfo({
-              artist: 'LA DOCTA FM',
+              artist: 'EL COLORADO FORMOSA',
               title: data.songtitle
             });
           }
