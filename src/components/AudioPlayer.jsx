@@ -23,6 +23,25 @@ const AudioPlayer = () => {
   });
 
   useEffect(() => {
+    // Inicializar Google Cast SDK
+    window['__onGCastApiAvailable'] = (isAvailable) => {
+      if (isAvailable) {
+        try {
+          if (window.cast && window.cast.framework) {
+            window.cast.framework.CastContext.getInstance().setOptions({
+              receiverApplicationId: window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+              autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+            });
+            console.log("Google Cast inicializado");
+          }
+        } catch (e) {
+          console.error("Error al inicializar Google Cast:", e);
+        }
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const fetchMetadata = async () => {
       try {
         // Intentamos obtener metadatos. Usamos un proxy CORS si es necesario.
@@ -147,13 +166,48 @@ const AudioPlayer = () => {
 
   const handleCast = () => {
     const audio = audioRef.current;
-    if (!audio) return;
-
-    // Estrategia 1: API RemotePlayback (Chrome, Edge, Android)
+    
+    // Estrategia 1: Google Cast SDK (PC Chrome, Android TV, WebOS con Cast)
     if (window.cast && window.cast.framework) {
-       // Si hay framework de cast cargado (opcional, si se implementara SDK completo)
+      const context = window.cast.framework.CastContext.getInstance();
+      context.requestSession().then(
+        (session) => {
+          console.log("Sesión de Cast iniciada", session);
+          const mediaInfo = new window.chrome.cast.media.MediaInfo(streamUrl, 'audio/mp3');
+          mediaInfo.metadata = new window.chrome.cast.media.MusicTrackMediaMetadata();
+          mediaInfo.metadata.artist = trackInfo.artist;
+          mediaInfo.metadata.title = trackInfo.title;
+          
+          // Construir URL absoluta para la imagen
+          const imageSrc = logoPlaceholder.startsWith('http') 
+            ? logoPlaceholder 
+            : window.location.origin + logoPlaceholder;
+            
+          mediaInfo.metadata.images = [new window.chrome.cast.Image(imageSrc)];
+
+          const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
+          session.loadMedia(request).then(
+            () => { 
+              console.log('Carga en Cast exitosa'); 
+              // Opcional: Pausar el reproductor local para no escuchar doble
+              if (audio) audio.pause();
+              setIsPlaying(true); 
+            },
+            (errorCode) => { console.error('Error code Cast load: ' + errorCode); }
+          );
+        },
+        (error) => {
+          if (error !== 'cancel') console.error("Error solicitando sesión Cast:", error);
+        }
+      );
+      // Si Cast está disponible, retornamos para no intentar otros métodos simultáneamente
+      // a menos que Cast falle o no inicie sesión (el error handler lo cubre)
+      return; 
     }
 
+    if (!audio) return;
+
+    // Estrategia 2: API RemotePlayback (Chrome Mobile, Edge, etc.)
     if (audio.remotePlayback) {
       // Verificar si hay dispositivos disponibles primero
       audio.remotePlayback.watchAvailability((availability) => {
@@ -164,7 +218,7 @@ const AudioPlayer = () => {
             });
          } else {
             console.log('No hay dispositivos de transmisión disponibles (watchAvailability).');
-            // Intentar prompt de todos modos por si acaso la API miente
+            // Intentar prompt de todos modos
             audio.remotePlayback.prompt().catch(e => console.log(e));
          }
       }).catch(e => {
@@ -172,13 +226,13 @@ const AudioPlayer = () => {
         audio.remotePlayback.prompt().catch(err => console.error(err));
       });
     } 
-    // Estrategia 2: API WebKit AirPlay (Safari iOS/Mac, algunos WebOS antiguos)
+    // Estrategia 3: API WebKit AirPlay (Safari iOS/Mac)
     else if (audio.webkitShowPlaybackTargetPicker) {
       audio.webkitShowPlaybackTargetPicker();
     }
     // Fallback
     else {
-      alert("Tu dispositivo no soporta transmisión directa desde este botón.\n\nPor favor, usa la opción 'Transmitir', 'Cast' o 'AirPlay' en el menú de tu navegador o sistema.");
+      alert("Tu navegador no soporta transmisión directa.\n\nPrueba desde Chrome en PC/Android o Safari en iOS.");
     }
   };
 
