@@ -176,39 +176,46 @@ const AudioPlayer = () => {
 
       <div className="player-header">
         <div className="menu-icon" onClick={() => setIsMenuOpen(true)}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" height="24" width="24">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="3" y1="12" x2="21" y2="12"></line>
             <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
         </div>
         <div className="header-logo">
-          <div className="music-note-icon">
-            <svg viewBox="0 0 24 24" fill="#ff0000" height="20" width="20">
-              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-            </svg>
-          </div>
+           <div className="music-note-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-red-600">
+                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" fill="#ff0000"/>
+              </svg>
+           </div>
         </div>
-        <div className="cast-icon" onClick={handleCast} style={{cursor: 'pointer'}}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" height="24" width="24">
-            <path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"></path>
-            <line x1="2" y1="20" x2="2.01" y2="20"></line>
-          </svg>
+        <div className="cast-icon" onClick={handleCast}>
+           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+             <path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"></path>
+             <line x1="2" y1="20" x2="2.01" y2="20"></line>
+           </svg>
         </div>
       </div>
       
       {activeTab === 'radio' && (
         <div className="radio-content">
+          <div className="station-header-info">
+            <div className="station-location">EL COLORADO FORMOSA</div>
+            <div className="station-title">LA DOCTA FM 99.3</div>
+          </div>
+          
           <div className="album-art-container">
             <img 
               src={logoPlaceholder} 
-              alt="La Docta FM Logo" 
-              className={`album-cover`} 
+              alt="Album Art" 
+              className="album-cover"
+              onError={(e) => {e.target.src = logoPlaceholder}}
             />
           </div>
 
           <div className="track-info">
-            <div className="station-name">{trackInfo.artist}</div>
             <div className="track-title">{trackInfo.title}</div>
+            <div className="track-subtitle">{trackInfo.artist}</div>
           </div>
 
           <div className="controls-container">
