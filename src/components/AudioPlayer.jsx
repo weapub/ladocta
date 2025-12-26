@@ -25,32 +25,47 @@ const AudioPlayer = () => {
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
-        // Usamos un proxy CORS para evitar el error net::ERR_FAILED en navegadores
-        const streamUrl = 'https://stream.listafm.com.ar:8028/stats?sid=1&json=1';
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(streamUrl)}`;
+        // Intentamos obtener metadatos. Usamos un proxy CORS si es necesario.
+        // URL directa de metadatos
+        const metadataUrl = 'https://stream.listafm.com.ar:8028/stats?sid=1&json=1';
         
+        // Intentamos primero con corsproxy.io que suele ser más rápido y estable
+        try {
+          const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(metadataUrl)}`);
+          if (!response.ok) throw new Error('Network response was not ok');
+          const data = await response.json();
+          updateTrackInfo(data);
+          return; // Éxito, salimos
+        } catch (e) {
+          console.warn('Fallo corsproxy.io, intentando allorigins...', e);
+        }
+
+        // Fallback a allorigins.win
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(metadataUrl)}`;
         const response = await fetch(proxyUrl);
         const proxyData = await response.json();
-        
-        // allorigins devuelve el contenido en la propiedad 'contents'
         const data = JSON.parse(proxyData.contents);
-        
-        if (data && data.songtitle) {
-          const parts = data.songtitle.split(' - ');
-          if (parts.length >= 2) {
-            setTrackInfo({
-              artist: parts[0],
-              title: parts.slice(1).join(' - ')
-            });
-          } else {
-            setTrackInfo({
-              artist: 'EL COLORADO FORMOSA',
-              title: data.songtitle
-            });
-          }
-        }
+        updateTrackInfo(data);
+
       } catch (error) {
-        console.log('Error al obtener metadatos:', error);
+        console.log('Error al obtener metadatos (todos los intentos fallaron):', error);
+      }
+    };
+
+    const updateTrackInfo = (data) => {
+      if (data && data.songtitle) {
+        const parts = data.songtitle.split(' - ');
+        if (parts.length >= 2) {
+          setTrackInfo({
+            artist: parts[0],
+            title: parts.slice(1).join(' - ')
+          });
+        } else {
+          setTrackInfo({
+            artist: 'EL COLORADO FORMOSA',
+            title: data.songtitle
+          });
+        }
       }
     };
 
@@ -183,17 +198,17 @@ const AudioPlayer = () => {
       
       {activeTab === 'radio' && (
         <div className="radio-content">
-          <div className="track-info">
-            <div className="station-name">{trackInfo.artist}</div>
-            <div className="track-title">{trackInfo.title}</div>
-          </div>
-
           <div className="album-art-container">
             <img 
               src={logoPlaceholder} 
               alt="La Docta FM Logo" 
               className={`album-cover`} 
             />
+          </div>
+
+          <div className="track-info">
+            <div className="station-name">{trackInfo.artist}</div>
+            <div className="track-title">{trackInfo.title}</div>
           </div>
 
           <div className="controls-container">
