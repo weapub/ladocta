@@ -121,7 +121,7 @@
 
 .track-title {
   color: #ffffff;
-  font-size: clamp(1.4rem, 4vw, 1.8rem); /* Responsive font size */
+  font-size: clamp(1rem, 3vw, 1.4rem); /* Responsive font size */
   font-weight: bold;
   margin-bottom: 0.5rem;
   text-transform: uppercase;
