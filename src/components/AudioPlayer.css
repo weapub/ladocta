@@ -8,12 +8,28 @@
   width: 100%;
   max-width: 420px;
   height: 100vh;
+  height: 100dvh; /* Mobile viewport fix */
   box-sizing: border-box;
   margin: 0 auto;
   position: relative;
   font-family: 'WDXL Lubrifont TC', sans-serif;
   text-transform: uppercase;
   overflow-y: hidden; /* Prevent body scroll, handle inner scroll */
+}
+
+/* Desktop enhancement */
+@media (min-width: 768px) {
+  .audio-player {
+    max-width: 480px;
+    height: 90vh;
+    height: 90dvh;
+    max-height: 900px;
+    border: 1px solid #333;
+    border-radius: 20px;
+    background: #000;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    margin: auto;
+  }
 }
 
 /* Header */
@@ -83,10 +99,11 @@
 
 .track-title {
   color: #ffffff;
-  font-size: 1.8rem;
+  font-size: clamp(1.4rem, 4vw, 1.8rem); /* Responsive font size */
   font-weight: bold;
   margin-bottom: 0.5rem;
   text-transform: uppercase;
+  line-height: 1.2;
 }
 
 .track-subtitle {
@@ -106,6 +123,27 @@
   justify-content: center;
   align-items: center;
   position: relative;
+  transition: all 0.3s ease;
+}
+
+@media (max-height: 700px) {
+  .album-art-container {
+    max-width: 200px;
+    max-height: 30vh;
+    margin-bottom: 1rem;
+  }
+  .player-header {
+    margin-bottom: 1rem;
+  }
+  .track-info {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-height: 550px) {
+  .album-art-container {
+    display: none; /* Hide album art on very short screens to prioritize controls */
+  }
 }
 
 .album-cover {
@@ -282,11 +320,14 @@
   border: 1px solid #333;
   padding: 30px;
   border-radius: 15px;
-  width: 100%;
+  width: 90%;
   max-width: 300px;
   text-align: center;
   position: relative;
   box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+  max-height: 90vh;
+  max-height: 90dvh;
+  overflow-y: auto;
 }
 
 .close-menu-btn {

@@ -25,8 +25,15 @@ const AudioPlayer = () => {
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
-        const response = await fetch('https://stream.listafm.com.ar:8028/stats?sid=1&json=1');
-        const data = await response.json();
+        // Usamos un proxy CORS para evitar el error net::ERR_FAILED en navegadores
+        const streamUrl = 'https://stream.listafm.com.ar:8028/stats?sid=1&json=1';
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(streamUrl)}`;
+        
+        const response = await fetch(proxyUrl);
+        const proxyData = await response.json();
+        
+        // allorigins devuelve el contenido en la propiedad 'contents'
+        const data = JSON.parse(proxyData.contents);
         
         if (data && data.songtitle) {
           const parts = data.songtitle.split(' - ');
