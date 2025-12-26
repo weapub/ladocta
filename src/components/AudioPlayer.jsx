@@ -181,7 +181,9 @@ const AudioPlayer = () => {
         }
 
         console.log("Sesión de Cast iniciada", session);
-        const mediaInfo = new window.chrome.cast.media.MediaInfo(streamUrl, 'audio/mp3');
+        // Usar audio/mpeg que es el estándar, y establecer tipo de stream en VIVO
+        const mediaInfo = new window.chrome.cast.media.MediaInfo(streamUrl, 'audio/mpeg');
+        mediaInfo.streamType = window.chrome.cast.media.StreamType.LIVE;
         mediaInfo.metadata = new window.chrome.cast.media.MusicTrackMediaMetadata();
         mediaInfo.metadata.artist = trackInfo.artist;
         mediaInfo.metadata.title = trackInfo.title;
