@@ -410,6 +410,13 @@ const AudioPlayer = () => {
               <h3>Contacto Comercial</h3>
               <p>+54 9 3704 36-9955</p>
             </div>
+
+            <div className="menu-info-item">
+              <a href="/privacy-policy.html" target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', color: 'inherit'}}>
+                <h3>Política de Privacidad</h3>
+                <p>Consultar términos y condiciones</p>
+              </a>
+            </div>
             
             <button className="share-btn" onClick={() => {
               if (navigator.share) {
@@ -449,6 +456,13 @@ const AudioPlayer = () => {
             <div className="menu-info-item">
               <h3>Temporizador</h3>
               <p style={{fontSize: '0.8rem', opacity: 0.7}}>Próximamente</p>
+            </div>
+
+            <div className="menu-info-item">
+              <a href="/privacy-policy.html" target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', color: 'inherit'}}>
+                <h3 style={{color: '#ff0000'}}>Legal</h3>
+                <p>Política de Privacidad</p>
+              </a>
             </div>
           </div>
         </div>
