@@ -7,26 +7,6 @@ const ContactSection = () => {
     email: '',
     message: ''
   });
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchReviews();
-  }, []);
-
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch('/api/reviews');
-      if (response.ok) {
-        const data = await response.json();
-        setReviews(data);
-      }
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,7 +20,8 @@ const ContactSection = () => {
     e.preventDefault();
     
     try {
-      const response = await fetch('/api/reviews', {
+      // Usar el nuevo endpoint de contacto
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,22 +30,20 @@ const ContactSection = () => {
       });
 
       if (response.ok) {
-        const newReview = await response.json();
-        setReviews(prev => [newReview, ...prev]);
         setFormData({ name: '', email: '', message: '' });
-        alert('¡Gracias por tu comentario! Ya es visible en la sección de reseñas.');
+        alert('¡Gracias por tu mensaje! Nos pondremos en contacto pronto.');
       } else {
-        alert('Hubo un error al enviar tu comentario.');
+        alert('Hubo un error al enviar tu mensaje.');
       }
     } catch (error) {
-      console.error('Error posting review:', error);
+      console.error('Error posting message:', error);
       alert('Error de conexión.');
     }
   };
 
   return (
     <div className="contact-section">
-      <h2>Contáctanos y Deja tu Reseña</h2>
+      <h2>Contáctanos</h2>
       
       <div className="whatsapp-container">
         <a 
@@ -122,29 +101,6 @@ const ContactSection = () => {
 
         <button type="submit" className="submit-btn">Enviar Mensaje</button>
       </form>
-
-      <div className="reviews-container">
-        <h3>Comentarios y Reseñas</h3>
-        {loading ? (
-          <p>Cargando comentarios...</p>
-        ) : reviews.length > 0 ? (
-          <div className="reviews-list">
-            {reviews.map((review) => (
-              <div key={review.id} className="review-card">
-                <div className="review-header">
-                  <span className="review-author">{review.name}</span>
-                  <span className="review-date">
-                    {new Date(review.date).toLocaleDateString()}
-                  </span>
-                </div>
-                <p className="review-message">{review.message}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="no-reviews">Sé el primero en dejar un comentario.</p>
-        )}
-      </div>
     </div>
   );
 };
