@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">La Docta FM</string>
+    <string name="title_activity_main">La Docta FM</string>
+    <string name="package_name">com.ladocta.fm</string>
+    <string name="custom_url_scheme">com.ladocta.fm</string>
+</resources>

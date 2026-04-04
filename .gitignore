@@ -24,3 +24,12 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Android Keystore / Bubblewrap
+*.jks
+*.keystore
+*.p12
+assetlinks.json
+twa-manifest.json
+.bubblewrap
+

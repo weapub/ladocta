@@ -29,71 +29,79 @@ const NewsSection = () => {
       const xmlDoc = parser.parseFromString(xmlText, "text/xml");
       const items = xmlDoc.querySelectorAll("item");
       
-      const processedNews = Array.from(items).map(item => {
-        const title = item.querySelector("title")?.textContent || "Sin título";
-        const link = item.querySelector("link")?.textContent || "#";
-        const pubDate = item.querySelector("pubDate")?.textContent;
-        
-        // Handle Description (removing CDATA/HTML if needed for preview)
-        let description = item.querySelector("description")?.textContent || "";
-        // Simple HTML strip for clean text preview if it contains tags
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = description;
-        const cleanDescription = tempDiv.textContent || tempDiv.innerText || "";
+      const processedNews = Array.from(items)
+        .map(item => {
+          const title = item.querySelector("title")?.textContent || "Sin título";
+          const link = item.querySelector("link")?.textContent || "#";
+          const pubDate = item.querySelector("pubDate")?.textContent;
+          
+          // Handle Description (removing CDATA/HTML if needed for preview)
+          let description = item.querySelector("description")?.textContent || "";
+          // Simple HTML strip for clean text preview if it contains tags
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = description;
+          const cleanDescription = tempDiv.textContent || tempDiv.innerText || "";
 
-        const source = item.querySelector("source")?.textContent || "El Comercial";
-        
-        // Intentar extraer imagen
-        let image = null;
-        
-        // 1. Buscar en content:encoded (Namespace Content) - Common in Wordpress/El Comercial
-        const contentEncoded = item.getElementsByTagNameNS("http://purl.org/rss/1.0/modules/content/", "encoded")[0];
-        if (contentEncoded) {
-            const contentText = contentEncoded.textContent;
-            const imgMatch = contentText.match(/<img[^>]+src="([^">]+)"/);
+          const source = item.querySelector("source")?.textContent || "El Comercial";
+          
+          // Intentar extraer imagen
+          let image = null;
+          
+          // 1. Buscar en content:encoded (Namespace Content) - Common in Wordpress/El Comercial
+          const contentEncoded = item.getElementsByTagNameNS("http://purl.org/rss/1.0/modules/content/", "encoded")[0];
+          if (contentEncoded) {
+              const contentText = contentEncoded.textContent;
+              const imgMatch = contentText.match(/<img[^>]+src="([^">]+)"/);
+              if (imgMatch) {
+                  image = imgMatch[1];
+              }
+          }
+          
+          // 2. Buscar en media:content (Namespace Media RSS)
+          if (!image) {
+              const mediaContent = item.getElementsByTagNameNS("http://search.yahoo.com/mrss/", "content")[0];
+              if (mediaContent) {
+              image = mediaContent.getAttribute("url");
+              }
+          }
+          
+          // 3. Buscar en description (HTML incrustado)
+          if (!image && description) {
+            const imgMatch = description.match(/<img[^>]+src="([^">]+)"/);
             if (imgMatch) {
-                image = imgMatch[1];
+              image = imgMatch[1];
             }
-        }
-        
-        // 2. Buscar en media:content (Namespace Media RSS)
-        if (!image) {
-            const mediaContent = item.getElementsByTagNameNS("http://search.yahoo.com/mrss/", "content")[0];
-            if (mediaContent) {
-            image = mediaContent.getAttribute("url");
+          }
+          
+          // 4. Buscar en enclosure
+          if (!image) {
+            const enclosure = item.querySelector("enclosure");
+            if (enclosure && enclosure.getAttribute("type")?.startsWith("image/")) {
+              image = enclosure.getAttribute("url");
             }
-        }
-        
-        // 3. Buscar en description (HTML incrustado)
-        if (!image && description) {
-          const imgMatch = description.match(/<img[^>]+src="([^">]+)"/);
-          if (imgMatch) {
-            image = imgMatch[1];
           }
-        }
-        
-        // 4. Buscar en enclosure
-        if (!image) {
-          const enclosure = item.querySelector("enclosure");
-          if (enclosure && enclosure.getAttribute("type")?.startsWith("image/")) {
-            image = enclosure.getAttribute("url");
-          }
-        }
-        
-        // Fallback image if none found
-        if (!image) {
-            // Optional: Use a placeholder or keep null
-        }
-
-        return {
-          title,
-          link,
-          pubDate,
-          source,
-          content: cleanDescription,
-          image
-        };
-      });
+          
+          return {
+            title,
+            link,
+            pubDate,
+            source,
+            content: cleanDescription,
+            image
+          };
+        })
+        .filter(article => {
+          // Filtrar noticias de www.diariopinion.com.ar
+          const blockedDomains = ['diariopinion.com.ar', 'www.diariopinion.com.ar'];
+          const link = article.link.toLowerCase();
+          const source = article.source.toLowerCase();
+          
+          const isBlocked = blockedDomains.some(domain => 
+            link.includes(domain) || source.includes(domain)
+          );
+          
+          return !isBlocked;
+        });
 
       setNews(processedNews);
     } catch (err) {
